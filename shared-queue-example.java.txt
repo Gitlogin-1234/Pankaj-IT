@@ -1,0 +1,69 @@
+package com.pankaj;
+import java.util.Stack;
+
+/**
+ * A multithreaded queue used for 
+ * implementing producer-consumer style threading patterns.
+ * Multiple threads can wait for runnable objects being added
+ * to the queue while other threads add to the queue.
+ */
+public class Queue {
+
+    private Stack tasks = new Stack();
+    private long defaultTimeout = 100;
+
+    public Queue() {
+    }
+
+    /**
+     * Returns the current number of runnable objects in the queue
+     */
+    public synchronized int size() {
+        return tasks.size();
+    }
+
+    /** 
+     * adds a runnable object to the end of the queue.
+     * At least one thread will be notified.
+     */
+    public synchronized void add(Object runnable) {
+        tasks.push(runnable);
+        notifyAll();
+    }
+
+    /** 
+     * Removes the first runnable object from the queue, blocking until one is available.
+     */
+    public synchronized Object remove() {
+        while (true) {
+            Object runnable = removeNoWait();
+            if ( runnable != null ) {
+                return runnable;
+            }
+            try {
+                wait( defaultTimeout );
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+              
+            }
+        }
+    }
+
+    /**
+     * Removes the first runnable object from the queue without blocking.
+     * This method will return immediately with an item from the queue or null.
+     * @return the first runnable object removed from the queue or null if the
+     * queue is empty
+     */
+    public synchronized Object removeNoWait() {
+        if ( ! tasks.empty() ) {
+            return tasks.pop();
+        } else {
+            return null;
+        }
+    }
+
+}
+
+   
